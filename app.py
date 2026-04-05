@@ -9,7 +9,7 @@ import os
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Student Depression Predictor", page_icon="🧠", layout="wide")
 
-# --- LOAD & TRAIN MODEL ---
+# --- MODEL BUILDER ---
 @st.cache_resource
 def build_model_from_csv():
     csv_file = 'student_depression_dataset.csv'
@@ -23,11 +23,11 @@ def build_model_from_csv():
     # 🔥 CLEANING
     df.columns = df.columns.str.strip()
 
-    # Drop empty rows
+    # Drop fully empty rows
     df = df.dropna(how='all')
 
-    # Fill missing values safely
-    df = df.fillna(method='ffill').fillna(method='bfill')
+    # ✅ FIXED (new pandas safe method)
+    df = df.ffill().bfill()
 
     # Detect target column
     target_col = None
@@ -53,10 +53,10 @@ def build_model_from_csv():
     # Convert everything to numeric
     df = df.apply(pd.to_numeric, errors='coerce')
 
-    # Drop remaining NaN rows
+    # Drop any remaining NaN
     df = df.dropna()
 
-    # Split
+    # Split features & target
     X = df.drop(target_col, axis=1)
     y = df[target_col]
 
@@ -84,7 +84,7 @@ user_inputs = {}
 col1, col2 = st.columns(2)
 cols = [col1, col2]
 
-# Dynamic inputs
+# Dynamic input fields
 for i, col in enumerate(feature_cols):
     with cols[i % 2]:
         if col in encoders:
